@@ -73,6 +73,10 @@ public class NullPointerException : MonoBehaviour
         bool char2Initialized = false;
         bool char3Initialized = false;
 
+        bool safeGroup1 = true;
+        // Group 2 is char 2 and 3
+        bool safeGroup2 = true;
+
         int distFromItem = 30;
 
         // Set character loadouts, can only happen when the characters are at base.
@@ -142,10 +146,13 @@ public class NullPointerException : MonoBehaviour
 
 				char2Initialized = true;
 				char3Initialized = true;
+                safeGroup2 = false;
 			}
+
 
             character1.visibleEnemyLocations = new List<Vector3>();
             char1Initialized = true;
+            safeGroup1 = false;
 
         }
 
@@ -161,8 +168,10 @@ public class NullPointerException : MonoBehaviour
 				character1.MoveChar(character2.visibleEnemyLocations[0]);
                 character1.SetFacing(character2.visibleEnemyLocations[0]);
                 char1Initialized = true;
+                safeGroup1 = false;
 			}
 
+            safeGroup2 = false;
             character2.visibleEnemyLocations = new List<Vector3>();
 			char2Initialized = true;
 			char3Initialized = true;
@@ -180,10 +189,12 @@ public class NullPointerException : MonoBehaviour
 				character1.MoveChar(character3.visibleEnemyLocations[0]);
 				character1.SetFacing(character3.visibleEnemyLocations[0]);
 				char1Initialized = true;
+                safeGroup1 = false;
 			}
 
             character3.visibleEnemyLocations = new List<Vector3>();
 
+            safeGroup2 = false;
 			char2Initialized = true;
 			char3Initialized = true;
 
@@ -202,12 +213,14 @@ public class NullPointerException : MonoBehaviour
 				character3.MoveChar(character1.attackedFromLocations[0]);
 				character3.SetFacing(character1.attackedFromLocations[0]);
 
+                safeGroup2 = false;
 				char2Initialized = true;
 				char3Initialized = true;
 			}
 
             character1.attackedFromLocations = new List<Vector3>();
 
+            safeGroup1 = false;
 			char1Initialized = true;
 		}
 
@@ -224,10 +237,12 @@ public class NullPointerException : MonoBehaviour
 				character1.MoveChar(character2.attackedFromLocations[0]);
                 character1.SetFacing(character2.attackedFromLocations[0]);
                 char1Initialized = true;
+                safeGroup1 = false;
 			}
 
             character2.attackedFromLocations = new List<Vector3>();
 
+            safeGroup2 = false;
             char2Initialized = true;
             char3Initialized = true;
         }
@@ -243,10 +258,12 @@ public class NullPointerException : MonoBehaviour
 				character1.MoveChar(character3.attackedFromLocations[0]);
                 character1.SetFacing(character3.attackedFromLocations[0]);
 				char1Initialized = true;
+                safeGroup1 = false;
 			}
 
             character3.attackedFromLocations = new List<Vector3>();
 
+            safeGroup2 = false;
             char2Initialized = true;
             char3Initialized = true;
         }
@@ -353,24 +370,37 @@ public class NullPointerException : MonoBehaviour
     		char1Initialized = true;
 
     	}
-        foreach (GameObject item in items) {
-            // Collect items if close.
-            if (getDistance(character1Loc, item.transform.position) < distFromItem)
-            {
-                character1.MoveChar(item.transform.position);
-                character1.SetFacing(item.transform.position);
-            }
-			else if (getDistance(character2Loc, item.transform.position) < distFromItem)
+
+		if (safeGroup1)
+		{
+			foreach (GameObject item in items)
 			{
-				character2.MoveChar(item.transform.position);
-				character2.SetFacing(item.transform.position);
+				// Collect items if close.
+				if (getDistance(character1Loc, item.transform.position) < distFromItem)
+				{
+					character1.MoveChar(item.transform.position);
+					character1.SetFacing(item.transform.position);
+				}
 			}
-			else if (getDistance(character3Loc, item.transform.position) < distFromItem)
+		}
+		if (safeGroup2)
+		{
+			foreach (GameObject item in items)
 			{
-				character3.MoveChar(item.transform.position);
-				character3.SetFacing(item.transform.position);
+				// Collect items if close.
+				if (getDistance(character2Loc, item.transform.position) < distFromItem)
+				{
+					character2.MoveChar(item.transform.position);
+					character2.SetFacing(item.transform.position);
+				}
+				else if (getDistance(character3Loc, item.transform.position) < distFromItem)
+				{
+					character3.MoveChar(item.transform.position);
+					character3.SetFacing(item.transform.position);
+				}
 			}
-        }
+		}
+
 	}
 
 	// a simple function to track game time
