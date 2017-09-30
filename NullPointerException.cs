@@ -30,6 +30,8 @@ public class NullPointerException : MonoBehaviour
 	private ObjectiveScript rightObjective;
 	private float timer = 0;
 
+    private const float objectiveRadius = 10; 
+
 	private team ourTeamColor;
 	public static NullPointerException AddYourselfTo(GameObject host)
 	{
@@ -78,9 +80,10 @@ public class NullPointerException : MonoBehaviour
         bool char2Initialized = false;
         bool char3Initialized = false;
 
-        bool safeGroup1 = true;
-        // Group contains char 2 and char 3.
-        bool safeGroup2 = true;
+        // Stores whether it is safe for character to take items
+        bool safeChar1 = true;
+        bool safeChar2 = true;
+        bool safeChar3 = true;
 
         const int maxItemDistance = 30;
 
@@ -141,13 +144,14 @@ public class NullPointerException : MonoBehaviour
 
 				char2Initialized = true;
 				char3Initialized = true;
-                safeGroup2 = false;
+                safeChar2 = false;
+                safeChar3 = false;
 			}
 
 
             character1.visibleEnemyLocations = new List<Vector3>();
             char1Initialized = true;
-            safeGroup1 = false;
+            safeChar1 = false;
 
         }
 
@@ -160,10 +164,12 @@ public class NullPointerException : MonoBehaviour
 			{
                 moveTowards(character1, character2.visibleEnemyLocations[0]);
                 char1Initialized = true;
-                safeGroup1 = false;
+                safeChar1 = false;
 			}
 
-            safeGroup2 = false;
+			safeChar2 = false;
+			safeChar3 = false;
+
             character2.visibleEnemyLocations = new List<Vector3>();
 			char2Initialized = true;
 			char3Initialized = true;
@@ -178,12 +184,13 @@ public class NullPointerException : MonoBehaviour
 			{
 				moveTowards(character1, character3.visibleEnemyLocations[0]);
 				char1Initialized = true;
-                safeGroup1 = false;
+                safeChar1 = false;
 			}
 
             character3.visibleEnemyLocations = new List<Vector3>();
 
-            safeGroup2 = false;
+			safeChar2 = false;
+			safeChar3 = false;
 			char2Initialized = true;
 			char3Initialized = true;
 
@@ -192,22 +199,23 @@ public class NullPointerException : MonoBehaviour
 		// face enemy and go to other characters if char 1 attacked
 		if (character1.attackedFromLocations.Count != 0)
 		{
-			character1.MoveChar(character2Loc);
-			character1.SetFacing(character1.attackedFromLocations[0]);
+            moveTowards(character1, character1.attackedFromLocations[0]);
 
 			if (getDistance(character1Loc, character2Loc) < 30)
 			{
-				moveTowards(character2, character1.visibleEnemyLocations[0]);
-				moveTowards(character3, character1.visibleEnemyLocations[0]);
+				moveTowards(character2, character1.attackedFromLocations[0]);
+				moveTowards(character3, character1.attackedFromLocations[0]);
 
-				safeGroup2 = false;
+				safeChar2 = false;
+				safeChar3 = false;
+
 				char2Initialized = true;
 				char3Initialized = true;
 			}
 
 			character1.attackedFromLocations = new List<Vector3>();
 
-			safeGroup1 = false;
+            safeChar1 = false;
 			char1Initialized = true;
 		}
 
@@ -221,30 +229,33 @@ public class NullPointerException : MonoBehaviour
 			{
 				moveTowards(character1, character2.attackedFromLocations[0]);
 				char1Initialized = true;
-				safeGroup1 = false;
+                safeChar1 = false;
 			}
 
 			character2.attackedFromLocations = new List<Vector3>();
 
-			safeGroup2 = false;
+			safeChar2 = false;
+			safeChar3 = false;
+
 			char2Initialized = true;
 			char3Initialized = true;
 		}
 		else if (character3.attackedFromLocations.Count != 0)
 		{
 			moveTowards(character2, character3.attackedFromLocations[0]);
-			moveTowards(character2, character3.attackedFromLocations[0]);
+			moveTowards(character3, character3.attackedFromLocations[0]);
 
 			if (getDistance(character1Loc, character3Loc) < 30)
 			{
 				moveTowards(character1, character3.attackedFromLocations[0]);
 				char1Initialized = true;
-				safeGroup1 = false;
+                safeChar1 = false;
 			}
 
 			character3.attackedFromLocations = new List<Vector3>();
 
-			safeGroup2 = false;
+			safeChar2 = false;
+			safeChar3 = false;
 			char2Initialized = true;
 			char3Initialized = true;
 		}
@@ -252,8 +263,8 @@ public class NullPointerException : MonoBehaviour
         // send char 2 and 3 to capture objectives
         if ((!char2Initialized && !char3Initialized) 
             && middleObjective.getControllingTeam() != ourTeamColor
-            && ((getDistance(character2Loc, rightObjective.transform.position)
-                 > getDistance(character2Loc, middleObjective.transform.position))
+            && ((getDistance(character2Loc, rightObjectiveLoc)
+                 > getDistance(character2Loc, middleObjectiveLoc))
                  || rightObjective.getControllingTeam() == ourTeamColor))
         {
 
@@ -263,11 +274,20 @@ public class NullPointerException : MonoBehaviour
             char2Initialized = true;
             char3Initialized = true;
 
+			if (isOnObjective(character1Loc, middleObjectiveLoc))
+			{
+				moveTowards(character2, rightObjective);
+				moveTowards(character3, rightObjective);
+			}
+
+			char2Initialized = true;
+			char3Initialized = true;
+
         }
         if ((!char2Initialized && !char3Initialized)
             && rightObjective.getControllingTeam() != ourTeamColor
-			&& ((getDistance(character2Loc, rightObjective.transform.position)
-				 <= getDistance(character2Loc, middleObjective.transform.position))
+			&& ((getDistance(character2Loc, rightObjectiveLoc)
+				 <= getDistance(character2Loc, middleObjectiveLoc))
                 || middleObjective.getControllingTeam() == ourTeamColor))
         {
 
@@ -278,6 +298,18 @@ public class NullPointerException : MonoBehaviour
             char3Initialized = true;
 
         }
+
+		if ((!char2Initialized && !char3Initialized)
+			&& getDistance(character2Loc, middleObjectiveLoc) < 5)
+		{
+
+			moveTowards(character2, rightObjective);
+			moveTowards(character3, rightObjective);
+
+			char2Initialized = true;
+			char3Initialized = true;
+
+		}
 
         if ((!char2Initialized && !char3Initialized) 
             && getDistance(character2Loc, rightObjectiveLoc) < 5)
@@ -290,17 +322,7 @@ public class NullPointerException : MonoBehaviour
 			char3Initialized = true;
 
         }
-        if ((!char2Initialized && !char3Initialized) 
-            && getDistance(character2Loc, middleObjectiveLoc) < 5)
-        {
 
-            moveTowards(character2, rightObjective);
-			moveTowards(character3, rightObjective);
-
-            char2Initialized = true;
-            char3Initialized = true;
-
-        }
 
         if (!char1Initialized
             && ((getDistance(character1Loc, leftObjective.transform.position)
@@ -316,13 +338,19 @@ public class NullPointerException : MonoBehaviour
 		if (!char1Initialized
 			&& ((getDistance(character1Loc, leftObjective.transform.position)
 				 > getDistance(character1Loc, middleObjective.transform.position))
-               || leftObjective.getControllingTeam() == ourTeamColor)
-            &&  middleObjective.getControllingTeam() != ourTeamColor)
+            || leftObjective.getControllingTeam() == ourTeamColor)
+            && middleObjective.getControllingTeam() != ourTeamColor)
 		{
-
-            moveTowards(character1, middleObjective);
-			char1Initialized = true;
-
+            if (leftObjective.getControllingTeam() == ourTeamColor) 
+            {
+                moveTowards(character1, middleObjective);
+            }
+			if (isOnObjective(character2Loc, middleObjectiveLoc) 
+                || isOnObjective(character3Loc, leftObjectiveLoc))
+			{
+				moveTowards(character1, leftObjective);
+			}
+            char1Initialized = true;
 		}
 
     	if (!char1Initialized
@@ -330,7 +358,6 @@ public class NullPointerException : MonoBehaviour
     	{
 
             moveTowards(character1, middleObjective);
-
     		char1Initialized = true;
 
     	}
@@ -339,24 +366,30 @@ public class NullPointerException : MonoBehaviour
     	{
 
             moveTowards(character1, leftObjective);
-
     		char1Initialized = true;
 
     	}
 
-        if (safeGroup1)
-		{
-			foreach (GameObject item in items)
-			{
-				// Collect items if close.
-				if (getDistance(character1Loc, item.transform.position) < maxItemDistance)
-				{
-					character1.MoveChar(item.transform.position);
-					character1.SetFacing(item.transform.position);
-				}
-			}
-		}
-        if (safeGroup2)
+        if (safeChar1 
+            && (isOnObjective(character1Loc, leftObjectiveLoc)
+            || leftObjective.getControllingTeam() == ourTeamColor)
+            && (isOnObjective(character1Loc, middleObjectiveLoc)
+            || middleObjective.getControllingTeam() == ourTeamColor)) {
+            foreach (GameObject item in items)
+            {
+                // Collect items if close.
+                if (getDistance(character1Loc, item.transform.position) < maxItemDistance)
+                {
+                    character1.MoveChar(item.transform.position);
+                    character1.SetFacing(item.transform.position);
+                }
+            }
+        }
+        if (safeChar2
+            && (isOnObjective(character2Loc, rightObjectiveLoc)
+            || rightObjective.getControllingTeam() == ourTeamColor)
+            && (isOnObjective(character2Loc, middleObjectiveLoc)
+			|| middleObjective.getControllingTeam() == ourTeamColor))
 		{
 			foreach (GameObject item in items)
 			{
@@ -366,13 +399,25 @@ public class NullPointerException : MonoBehaviour
 					character2.MoveChar(item.transform.position);
 					character2.SetFacing(item.transform.position);
 				}
-				else if (getDistance(character3Loc, item.transform.position) < maxItemDistance)
+			}
+		}
+		else if (safeChar3
+                 && (isOnObjective(character3Loc, rightObjectiveLoc)
+				|| rightObjective.getControllingTeam() == ourTeamColor)
+                 && (isOnObjective(character3Loc, middleObjectiveLoc)
+                || middleObjective.getControllingTeam() == ourTeamColor))
+        {
+			foreach (GameObject item in items)
+			{
+				// Collect items if close.
+				if (getDistance(character3Loc, item.transform.position) < maxItemDistance)
 				{
 					character3.MoveChar(item.transform.position);
 					character3.SetFacing(item.transform.position);
 				}
 			}
-		}
+			
+        }
 
 	}
 
@@ -392,6 +437,9 @@ public class NullPointerException : MonoBehaviour
 		character.SetFacing(location);
 	}
 
+    bool isOnObjective(Vector3 charLocation, Vector3 objectiveLocation) {
+        return getDistance(charLocation, objectiveLocation) < objectiveRadius;
+    }
 
 	// a simple function to track game time
 	public void gameTimer()
