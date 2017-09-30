@@ -30,7 +30,8 @@ public class NullPointerException : MonoBehaviour
 	private ObjectiveScript rightObjective;
 	private float timer = 0;
 
-    private const float objectiveRadius = 10; 
+    private const float objectiveRadius = 10f;
+    private const float stationaryPointRadius = 0.7f;
 
 	private team ourTeamColor;
 	public static NullPointerException AddYourselfTo(GameObject host)
@@ -372,6 +373,40 @@ public class NullPointerException : MonoBehaviour
 
     	}
 
+        if (character1.getHP() > 0 && character1.getZone() == zone.Normal
+            && character1.isDoneMoving(stationaryPointRadius)) {
+            if (getDistance(character1Loc, leftObjectiveLoc) < getDistance(character1Loc, middleObjectiveLoc)) {
+                moveTowards(character1, leftObjective);
+            } else {
+                moveTowards(character1, middleObjective);
+            }
+            char1Initialized = true;
+        }
+
+        if (character2.getHP() > 0 && character2.getZone() == zone.Normal 
+			&& character2.isDoneMoving(stationaryPointRadius))
+		{
+            if (getDistance(character2Loc, middleObjectiveLoc) < getDistance(character2Loc, rightObjectiveLoc)) {
+                moveTowards(character2, middleObjective);
+			}
+			else {
+                moveTowards(character2, rightObjective);
+			}
+            char2Initialized = true;
+		}
+
+		if (character3.getHP() > 0 && character3.getZone() == zone.Normal
+			&& character3.isDoneMoving(stationaryPointRadius))
+		{
+            if (getDistance(character3Loc, middleObjectiveLoc) < getDistance(character3Loc, rightObjectiveLoc)) {
+				moveTowards(character3, middleObjective);
+			}
+			else {
+                moveTowards(character3, rightObjective);
+			}
+            char3Initialized = true;
+		}
+
         if (safeChar1 
             && (!isOnObjective(character1Loc, leftObjectiveLoc)
             || leftObjective.getControllingTeam() == ourTeamColor)
@@ -401,7 +436,7 @@ public class NullPointerException : MonoBehaviour
 				}
 			}
 		}
-		if (safeChar3
+		else if (safeChar3
              && (!isOnObjective(character3Loc, rightObjectiveLoc)
 			|| rightObjective.getControllingTeam() == ourTeamColor)
              && (!isOnObjective(character3Loc, middleObjectiveLoc)
