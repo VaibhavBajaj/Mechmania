@@ -271,9 +271,11 @@ public class NullPointerException : MonoBehaviour
 			moveTowards(character2, middleObjective);
 			moveTowards(character3, middleObjective);
 
-            char2Initialized = true;
-            char3Initialized = true;
-
+            if (rightObjective.getControllingTeam() == ourTeamColor)
+			{
+				moveTowards(character2, middleObjective);
+                moveTowards(character3, middleObjective);
+			}
 			if (isOnObjective(character1Loc, middleObjectiveLoc))
 			{
 				moveTowards(character2, rightObjective);
@@ -371,24 +373,23 @@ public class NullPointerException : MonoBehaviour
     	}
 
         if (safeChar1 
-            && (isOnObjective(character1Loc, leftObjectiveLoc)
+            && (!isOnObjective(character1Loc, leftObjectiveLoc)
             || leftObjective.getControllingTeam() == ourTeamColor)
-            && (isOnObjective(character1Loc, middleObjectiveLoc)
+            && (!isOnObjective(character1Loc, middleObjectiveLoc)
             || middleObjective.getControllingTeam() == ourTeamColor)) {
             foreach (GameObject item in items)
             {
                 // Collect items if close.
                 if (getDistance(character1Loc, item.transform.position) < maxItemDistance)
                 {
-                    character1.MoveChar(item.transform.position);
-                    character1.SetFacing(item.transform.position);
+                    moveTowards(character1, item.transform.position);
                 }
             }
         }
         if (safeChar2
-            && (isOnObjective(character2Loc, rightObjectiveLoc)
+            && (!isOnObjective(character2Loc, rightObjectiveLoc)
             || rightObjective.getControllingTeam() == ourTeamColor)
-            && (isOnObjective(character2Loc, middleObjectiveLoc)
+            && (!isOnObjective(character2Loc, middleObjectiveLoc)
 			|| middleObjective.getControllingTeam() == ourTeamColor))
 		{
 			foreach (GameObject item in items)
@@ -396,24 +397,22 @@ public class NullPointerException : MonoBehaviour
 				// Collect items if close.
 				if (getDistance(character2Loc, item.transform.position) < maxItemDistance)
 				{
-					character2.MoveChar(item.transform.position);
-					character2.SetFacing(item.transform.position);
+					moveTowards(character2, item.transform.position);
 				}
 			}
 		}
-		else if (safeChar3
-                 && (isOnObjective(character3Loc, rightObjectiveLoc)
-				|| rightObjective.getControllingTeam() == ourTeamColor)
-                 && (isOnObjective(character3Loc, middleObjectiveLoc)
-                || middleObjective.getControllingTeam() == ourTeamColor))
+		if (safeChar3
+             && (!isOnObjective(character3Loc, rightObjectiveLoc)
+			|| rightObjective.getControllingTeam() == ourTeamColor)
+             && (!isOnObjective(character3Loc, middleObjectiveLoc)
+            || middleObjective.getControllingTeam() == ourTeamColor))
         {
 			foreach (GameObject item in items)
 			{
 				// Collect items if close.
 				if (getDistance(character3Loc, item.transform.position) < maxItemDistance)
 				{
-					character3.MoveChar(item.transform.position);
-					character3.SetFacing(item.transform.position);
+                    moveTowards(character3, item.transform.position);
 				}
 			}
 			
